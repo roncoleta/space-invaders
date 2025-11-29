@@ -1,0 +1,36 @@
+.grid 
+{
+    width: 300px;
+    height: 300px;
+    border: solid black 1px;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: black;
+}
+
+.grid div 
+{
+    width: 20px;
+    height: 20px;
+}
+
+.alienpericuloso 
+{
+    background-color: chartreuse;
+    border-radius: 15px;
+}
+
+.boom
+{
+    background-color: red;
+}
+.navezona
+{
+    background-color: rgb(162, 0, 255);
+}
+
+.tiros
+{
+    background-color: rgb(253, 122, 0);
+    
+}
