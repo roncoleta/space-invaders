@@ -1,20 +1,30 @@
 <!doctype html>
-
-<html lang="ptbr">
+<html lang="pt-BR">
     <head>
         <meta charset="utf-8">
-
-        <title> Space Invaders </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Space Invaders</title>
         <link rel="stylesheet" href="enfeites.css">
+        <script src="game.js" defer></script>
     </head>
 
     <body>
-        <h1 class="results">0</h1>
-        <div class="grid"></div>
-        <script src="game.js"></script>
-        <br>
-        <h1 class> Use as setas do teclado para se mover. <br>
-                   Use a seta para cima para atirar.
-        </h1>
-    </body>   
+        <main>
+            <h1>Space Invaders</h1>
+
+            <section class="painel" aria-label="Placar">
+                <p>Pontos: <strong id="pontos">0</strong></p>
+                <p>Recorde: <strong id="recorde">0</strong></p>
+                <p>Vidas: <strong id="vidas"></strong></p>
+            </section>
+
+            <div class="grid" aria-label="Área do jogo"></div>
+
+            <p id="mensagem" class="mensagem" aria-live="polite"></p>
+
+            <p class="instrucoes">
+                ← → mover &middot; ↑ ou Espaço atirar &middot; P pausar &middot; Enter reiniciar
+            </p>
+        </main>
+    </body>
 </html>
