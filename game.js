@@ -1,24 +1,14 @@
-// ============================================================
-//  Space Invaders - versão 2
-//
-//  Ideia central: o jogo inteiro vive em UM objeto (`estado`).
-//  A cada mudança, a função desenhar() redesenha a tela inteira
-//  a partir desse objeto. Assim nunca sobra "lixo" na tela e
-//  fica fácil de entender o que está acontecendo.
-// ============================================================
-
-// ---------- Configurações ----------
 const LARGURA = 15
 const ALTURA = 15
 const TOTAL = LARGURA * ALTURA
 const LINHA_DA_NAVE = ALTURA - 2
-const MS_POR_TICK = 100        // o "relógio" do jogo: 1 tick = 100 ms
+const MS_POR_TICK = 100   
 const VIDAS_INICIAIS = 3
-const RECARGA_TICKS = 4        // tempo mínimo entre dois tiros do jogador
-const EXPLOSAO_TICKS = 3       // quanto tempo a explosão fica na tela
+const RECARGA_TICKS = 4       
+const EXPLOSAO_TICKS = 3      
 const CHAVE_RECORDE = 'space-invaders:recorde'
 
-// ---------- Elementos do DOM ----------
+// Elementos do DOM
 const grid = document.querySelector('.grid')
 const pontosEl = document.querySelector('#pontos')
 const recordeEl = document.querySelector('#recorde')
@@ -39,7 +29,6 @@ const MENSAGENS = {
     derrota: 'GAME OVER - pressione Enter para jogar de novo',
 }
 
-// ---------- Recorde (guardado no navegador) ----------
 function lerRecorde()
 {
     try { return Number(localStorage.getItem(CHAVE_RECORDE)) || 0 }
@@ -54,10 +43,9 @@ function salvarRecorde(valor)
 
 let recorde = lerRecorde()
 
-// ---------- Estado do jogo ----------
+// Estado do jogo
 function criarInvasores()
 {
-    // 3 linhas de 10 invasores, igual ao original (0..9, 15..24, 30..39)
     const invasores = []
     for (let linha = 0; linha < 3; linha++)
     {
@@ -72,24 +60,24 @@ function criarInvasores()
 function novoEstado()
 {
     return {
-        nave: LINHA_DA_NAVE * LARGURA + Math.floor(LARGURA / 2), // = 202, como no original
-        invasores: criarInvasores(),   // só os que estão VIVOS
-        direcao: 1,                    // 1 = direita, -1 = esquerda
-        tiros: [],                     // tiros do jogador
+        nave: LINHA_DA_NAVE * LARGURA + Math.floor(LARGURA / 2),
+        invasores: criarInvasores(),
+        direcao: 1,             
+        tiros: [],                    
         tirosInimigos: [],
-        explosoes: new Map(),          // posição -> ticks restantes
+        explosoes: new Map(),        
         pontos: 0,
         vidas: VIDAS_INICIAIS,
         recarga: 0,
         tick: 0,
         contadorInvasores: 6,
-        status: 'jogando',             // 'jogando' | 'pausado' | 'vitoria' | 'derrota'
+        status: 'jogando',       
     }
 }
 
 let estado = novoEstado()
 
-// ---------- Regras ----------
+//Regras
 function terminar(resultado)
 {
     if (estado.status !== 'jogando') return
@@ -123,11 +111,8 @@ function atirar()
     estado.recarga = RECARGA_TICKS
 }
 
-// Em vez de só olhar a colisão quando o tiro anda, olhamos depois de
-// QUALQUER movimento. Assim, ninguém "atravessa" ninguém.
 function resolverColisoes()
 {
-    // Tiros do jogador x invasores
     estado.tiros = estado.tiros.filter(tiro =>
     {
         const acertou = estado.invasores.includes(tiro)
@@ -140,35 +125,30 @@ function resolverColisoes()
         return !acertou
     })
 
-    // Tiros inimigos x nave
     const antes = estado.tirosInimigos.length
     estado.tirosInimigos = estado.tirosInimigos.filter(t => t !== estado.nave)
     if (estado.tirosInimigos.length < antes) perderVida()
 
-    // Invasores chegaram na linha da nave
     if (estado.invasores.some(i => i >= LINHA_DA_NAVE * LARGURA)) terminar('derrota')
 
-    // Todos eliminados
     if (estado.invasores.length === 0) terminar('vitoria')
 }
 
 function intervaloDosInvasores()
 {
-    // Quanto menos invasores, mais rápido eles andam (mínimo: a cada 2 ticks)
     return Math.max(2, Math.ceil(estado.invasores.length / 5))
 }
 
 function moverInvasores()
 {
-    // As bordas são calculadas só com os invasores vivos
     const colunas = estado.invasores.map(i => i % LARGURA)
     const naBordaDireita = estado.direcao === 1 && colunas.includes(LARGURA - 1)
     const naBordaEsquerda = estado.direcao === -1 && colunas.includes(0)
 
     if (naBordaDireita || naBordaEsquerda)
     {
-        estado.invasores = estado.invasores.map(i => i + LARGURA) // desce uma linha
-        estado.direcao *= -1                                      // e inverte
+        estado.invasores = estado.invasores.map(i => i + LARGURA)
+        estado.direcao *= -1                                     
     }
     else
     {
@@ -180,7 +160,6 @@ function invasorAtira()
 {
     if (estado.invasores.length === 0) return
 
-    // Só o invasor mais baixo de cada coluna pode atirar
     const maisBaixoPorColuna = new Map()
     for (const i of estado.invasores)
     {
@@ -206,7 +185,6 @@ function envelhecerExplosoes()
     }
 }
 
-// ---------- Um "tick" do jogo ----------
 function tick()
 {
     if (estado.status !== 'jogando') return
@@ -215,11 +193,9 @@ function tick()
     if (estado.recarga > 0) estado.recarga--
     envelhecerExplosoes()
 
-    // 1) Tiros do jogador sobem 1 casa por tick (e somem ao sair da tela)
     estado.tiros = estado.tiros.map(t => t - LARGURA).filter(t => t >= 0)
     resolverColisoes()
 
-    // 2) Tiros inimigos descem 1 casa a cada 2 ticks
     if (estado.tick % 2 === 0)
     {
         estado.tirosInimigos = estado.tirosInimigos
@@ -228,7 +204,6 @@ function tick()
         resolverColisoes()
     }
 
-    // 3) Invasores andam (cada vez mais rápido)
     estado.contadorInvasores--
     if (estado.contadorInvasores <= 0)
     {
@@ -237,7 +212,6 @@ function tick()
         resolverColisoes()
     }
 
-    // 4) De tempos em tempos, um invasor atira
     if (estado.tick % 10 === 0)
     {
         invasorAtira()
@@ -247,7 +221,6 @@ function tick()
     desenhar()
 }
 
-// ---------- Desenho ----------
 function desenhar()
 {
     for (const quadrado of quadrados) quadrado.className = ''
@@ -264,7 +237,6 @@ function desenhar()
     mensagemEl.textContent = MENSAGENS[estado.status]
 }
 
-// ---------- Controles ----------
 function reiniciar()
 {
     estado = novoEstado()
@@ -280,7 +252,6 @@ function alternarPausa()
 
 document.addEventListener('keydown', (e) =>
 {
-    // Impede a página de rolar com as setas e o espaço
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', ' '].includes(e.key)) e.preventDefault()
 
     if (e.key === 'Enter' && (estado.status === 'vitoria' || estado.status === 'derrota'))
@@ -317,7 +288,6 @@ document.addEventListener('keydown', (e) =>
     desenhar()
 })
 
-// Pausa sozinho se você trocar de aba
 document.addEventListener('visibilitychange', () =>
 {
     if (document.hidden && estado.status === 'jogando')
@@ -327,6 +297,5 @@ document.addEventListener('visibilitychange', () =>
     }
 })
 
-// ---------- Começa o jogo ----------
 desenhar()
 setInterval(tick, MS_POR_TICK)
